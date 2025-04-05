@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>单位换算器</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        select, input, button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>单位换算器</h1>
+    <div>
+        <select id="category" onchange="updateUnits()">
+            <option value="currency">货币</option>
+            <option value="volume">体积</option>
+            <option value="length">长度</option>
+            <option value="weight">重量</option>
+            <option value="temperature">温度</option>
+            <option value="energy">能量</option>
+            <option value="area">面积</option>
+            <option value="speed">速度</option>
+            <option value="time">时间</option>
+            <option value="power">功率</option>
+            <option value="pressure">压力</option>
+            <option value="angle">角度</option>
+        </select>
+    </div>
+    <div>
+        <input type="number" id="inputValue" placeholder="输入值">
+        <select id="unitFrom"></select>
+        <span>转换为</span>
+        <select id="unitTo"></select>
+        <button onclick="convert()">换算</button>
+    </div>
+    <p>结果: <span id="result"></span></p>
+
+    <script>
+        const units = {
+            currency: ["CNY", "USD", "EUR", "JPY"],
+            volume: ["立方米", "升", "毫升", "加仑"],
+            length: ["米", "千米", "厘米", "英寸"],
+            weight: ["千克", "克", "磅", "盎司"],
+            temperature: ["摄氏度", "华氏度", "开尔文"],
+            energy: ["焦耳", "千瓦时", "卡路里"],
+            area: ["平方米", "公顷", "英亩"],
+            speed: ["米/秒", "千米/小时", "英里/小时"],
+            time: ["秒", "分钟", "小时", "天"],
+            power: ["瓦", "千瓦", "马力"],
+            pressure: ["帕", "巴", "大气压"],
+            angle: ["度", "弧度", "百分度"]
+        };
+
+        function updateUnits() {
+            const category = document.getElementById("category").value;
+            const unitFrom = document.getElementById("unitFrom");
+            const unitTo = document.getElementById("unitTo");
+            unitFrom.innerHTML = "";
+            unitTo.innerHTML = "";
+            units[category].forEach(unit => {
+                unitFrom.innerHTML += `<option value="${unit}">${unit}</option>`;
+                unitTo.innerHTML += `<option value="${unit}">${unit}</option>`;
+            });
+        }
+
+        function convert() {
+            const value = parseFloat(document.getElementById("inputValue").value);
+            const category = document.getElementById("category").value;
+            const from = document.getElementById("unitFrom").value;
+            const to = document.getElementById("unitTo").value;
+            let result = value;
+
+            if (from === to) {
+                result = value;
+            } else {
+                switch (category) {
+                    case "currency": // 2025年4月汇率示例
+                        const rates = { CNY: 1, USD: 0.14, EUR: 0.13, JPY: 20.5 };
+                        result = value * rates[to] / rates[from];
+                        break;
+                    case "volume":
+                        const vol = { "立方米": 1, "升": 1000, "毫升": 1000000, "加仑": 264.172 };
+                        result = value * vol[to] / vol[from];
+                        break;
+                    case "length":
+                        const len = { "米": 1, "千米": 0.001, "厘米": 100, "英寸": 39.3701 };
+                        result = value * len[to] / len[from];
+                        break;
+                    case "weight":
+                        const wt = { "千克": 1, "克": 1000, "磅": 2.20462, "盎司": 35.274 };
+                        result = value * wt[to] / wt[from];
+                        break;
+                    case "temperature":
+                        if (from === "摄氏度" && to === "华氏度") result = value * 9/5 + 32;
+                        if (from === "摄氏度" && to === "开尔文") result = value + 273.15;
+                        if (from === "华氏度" && to === "摄氏度") result = (value - 32) * 5/9;
+                        if (from === "华氏度" && to === "开尔文") result = (value - 32) * 5/9 + 273.15;
+                        if (from === "开尔文" && to === "摄氏度") result = value - 273.15;
+                        if (from === "开尔文" && to === "华氏度") result = (value - 273.15) * 9/5 + 32;
+                        break;
+                    case "energy":
+                        const en = { "焦耳": 1, "千瓦时": 2.77778e-7, "卡路里": 0.2388459 };
+                        result = value * en[to] / en[from];
+                        break;
+                    case "area":
+                        const ar = { "平方米": 1, "公顷": 0.0001, "英亩": 0.000247105 };
+                        result = value * ar[to] / ar[from];
+                        break;
+                    case "speed":
+                        const sp = { "米/秒": 1, "千米/小时": 0.277778, "英里/小时": 0.44704 };
+                        result = value * sp[to] / sp[from];
+                        break;
+                    case "time":
+                        const tm = { "秒": 1, "分钟": 1/60, "小时": 1/3600, "天": 1/86400 };
+                        result = value * tm[to] / tm[from];
+                        break;
+                    case "power":
+                        const pw = { "瓦": 1, "千瓦": 0.001, "马力": 0.00134102 };
+                        result = value * pw[to] / pw[from];
+                        break;
+                    case "pressure":
+                        const pr = { "帕": 1, "巴": 0.00001, "大气压": 0.00000986923 };
+                        result = value * pr[to] / pr[from];
+                        break;
+                    case "angle":
+                        const ang = { "度": 1, "弧度": 0.0174533, "百分度": 0.9 };
+                        result = value * ang[to] / ang[from];
+                        break;
+                }
+            }
+
+            document.getElementById("result").textContent = result.toFixed(4) || "不支持的换算";
+        }
+
+        // 初始化
+        updateUnits();
+    </script>
+</body>
+</html>
