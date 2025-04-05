@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>单位换算器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        select, input, button {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        select {
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        input[type="number"] {
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .conversion {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .conversion span {
+            color: #666;
+        }
+        p {
+            text-align: center;
+            color: #333;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        #result {
+            font-weight: bold;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>单位换算器</h1>
+        <select id="category" onchange="updateUnits()">
+            <option value="currency">货币</option>
+            <option value="volume">体积</option>
+            <option value="length">长度</option>
+            <option value="weight">重量</option>
+            <option value="temperature">温度</option>
+            <option value="energy">能量</option>
+            <option value="area">面积</option>
+            <option value="speed">速度</option>
+            <option value="time">时间</option>
+            <option value="power">功率</option>
+            <option value="pressure">压力</option>
+            <option value="angle">角度</option>
+        </select>
+        <input type="number" id="inputValue" placeholder="输入值">
+        <div class="conversion">
+            <select id="unitFrom"></select>
+            <span>转换为</span>
+            <select id="unitTo"></select>
+        </div>
+        <button onclick="convert()">换算</button>
+        <p>结果: <span id="result"></span></p>
+    </div>
+
+    <script>
+        const units = {
+            currency: ["CNY", "USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "HKD", "SGD", "KRW", "RUB"],
+            volume: ["立方米", "升", "毫升", "加仑", "立方英寸", "立方英尺", "桶", "品脱", "夸脱", "液盎司", "立方码", "微升"],
+            length: ["米", "千米", "厘米", "毫米", "英寸", "英尺", "码", "英里", "海里", "微米", "纳米", "光年", "Å(埃)"],
+            weight: ["千克", "克", "吨", "磅", "盎司", "金衡盎司", "克拉", "石", "毫克", "微克", "短吨", "长吨"],
+            temperature: ["摄氏度", "华氏度", "开尔文", "兰氏度", "列氏度", "牛顿度", "德利尔度"],
+            energy: ["焦耳", "千瓦时", "卡路里", "英热单位", "电子伏特", "尔格", "牛顿米", "马力小时", "千焦", "兆焦", "瓦秒"],
+            area: ["平方米", "公顷", "英亩", "平方千米", "平方英尺", "平方码", "平方英寸", "平方毫米", "平方厘米", "平方微米", "町"],
+            speed: ["米/秒", "千米/小时", "英里/小时", "节", "光速", "马赫", "英尺/秒", "厘米/秒", "千米/秒", "英寸/秒"],
+            time: ["秒", "分钟", "小时", "天", "周", "月", "年", "毫秒", "微秒", "纳秒", "皮秒", "世纪", "十年"],
+            power: ["瓦", "千瓦", "马力", "兆瓦", "英制马力", "焦耳/秒", "卡路里/秒", "吉瓦", "微瓦", "毫瓦", "匹"],
+            pressure: ["帕", "巴", "大气压", "毫米汞柱", "千帕", "兆帕", "托", "磅/平方英寸", "英寸汞柱", "毫巴", "千克/平方厘米"],
+            angle: ["度", "弧度", "百分度", "毫弧度", "角分", "角秒", "圈", "直角", "密位", "弧分", "弧秒"]
+        };
+
+        function updateUnits() {
+            const category = document.getElementById("category").value;
+            const unitFrom = document.getElementById("unitFrom");
+            const unitTo = document.getElementById("unitTo");
+            unitFrom.innerHTML = "";
+            unitTo.innerHTML = "";
+            units[category].forEach(unit => {
+                unitFrom.innerHTML += `<option value="${unit}">${unit}</option>`;
+                unitTo.innerHTML += `<option value="${unit}">${unit}</option>`;
+            });
+        }
+
+        function convert() {
+            const value = parseFloat(document.getElementById("inputValue").value);
+            const category = document.getElementById("category").value;
+            const from = document.getElementById("unitFrom").value;
+            const to = document.getElementById("unitTo").value;
+            let result = value;
+
+            if (from === to) {
+                result = value;
+            } else {
+                switch (category) {
+                    case "currency": // 2025年4月汇率示例
+                        const rates = { CNY: 1, USD: 0.14, EUR: 0.13, JPY: 20.5, GBP: 0.11, AUD: 0.21, CAD: 0.19, CHF: 0.13, HKD: 1.09, SGD: 0.19, KRW: 190, RUB: 13 };
+                        result = value * rates[to] / rates[from];
+                        break;
+                    case "volume":
+                        const vol = { "立方米": 1, "升": 1000, "毫升": 1000000, "加仑": 264.172, "立方英寸": 61023.7, "立方英尺": 35.3147, "桶": 6.28981, "品脱": 2113.38, "夸脱": 1056.69, "液盎司": 33814, "立方码": 1.30795, "微升": 1e9 };
+                        result = value * vol[to] / vol[from];
+                        break;
+                    case "length":
+                        const len = { "米": 1, "千米": 0.001, "厘米": 100, "毫米": 1000, "英寸": 39.3701, "英尺": 3.28084, "码": 1.09361, "英里": 0.000621371, "海里": 0.000539957, "微米": 1e6, "纳米": 1e9, "光年": 1.057e-16, "Å(埃)": 1e10 };
+                        result = value * len[to] / len[from];
+                        break;
+                    case "weight":
+                        const wt = { "千克": 1, "克": 1000, "吨": 0.001, "磅": 2.20462, "盎司": 35.274, "金衡盎司": 32.1507, "克拉": 5000, "石": 0.157473, "毫克": 1e6, "微克": 1e9, "短吨": 0.00110231, "长吨": 0.000984207 };
+                        result = value * wt[to] / wt[from];
+                        break;
+                    case "temperature":
+                        if (from === "摄氏度") {
+                            if (to === "华氏度") result = value * 9/5 + 32;
+                            if (to === "开尔文") result = value + 273.15;
+                            if (to === "兰氏度") result = (value + 273.15) * 1.8;
+                            if (to === "列氏度") result = value * 0.8;
+                            if (to === "牛顿度") result = value * 0.33;
+                            if (to === "德利尔度") result = (100 - value) * 1.5;
+                        }
+                        if (from === "华氏度") {
+                            if (to === "摄氏度") result = (value - 32) * 5/9;
+                            if (to === "开尔文") result = (value - 32) * 5/9 + 273.15;
+                            if (to === "兰氏度") result = value + 459.67;
+                            if (to === "列氏度") result = (value - 32) * 4/9;
+                            if (to === "牛顿度") result = (value - 32) * 11/60;
+                            if (to === "德利尔度") result = (212 - value) * 5/6;
+                        }
+                        if (from === "开尔文") {
+                            if (to === "摄氏度") result = value - 273.15;
+                            if (to === "华氏度") result = (value - 273.15) * 9/5 + 32;
+                            if (to === "兰氏度") result = value * 1.8;
+                            if (to === "列氏度") result = (value - 273.15) * 0.8;
+                            if (to === "牛顿度") result = (value - 273.15) * 0.33;
+                            if (to === "德利尔度") result = (373.15 - value) * 1.5;
+                        }
+                        if (from === "兰氏度") {
+                            if (to === "摄氏度") result = value / 1.8 - 273.15;
+                            if (to === "华氏度") result = value - 459.67;
+                            if (to === "开尔文") result = value / 1.8;
+                            if (to === "列氏度") result = (value - 491.67) * 4/9;
+                            if (to === "牛顿度") result = (value - 491.67) * 11/60;
+                            if (to === "德利尔度") result = (671.67 - value) * 5/6;
+                        }
+                        if (from === "列氏度") {
+                            if (to === "摄氏度") result = value * 1.25;
+                            if (to === "华氏度") result = value * 2.25 + 32;
+                            if (to === "开尔文") result = value * 1.25 + 273.15;
+                            if (to === "兰氏度") result = value * 2.25 + 491.67;
+                            if (to === "牛顿度") result = value * 0.4125;
+                            if (to === "德利尔度") result = (80 - value) * 1.875;
+                        }
+                        if (from === "牛顿度") {
+                            if (to === "摄氏度") result = value * 100/33;
+                            if (to === "华氏度") result = value * 60/11 + 32;
+                            if (to === "开尔文") result = value * 100/33 + 273.15;
+                            if (to === "兰氏度") result = value * 60/11 + 491.67;
+                            if (to === "列氏度") result = value * 80/33;
+                            if (to === "德利尔度") result = (33 - value) * 50/11;
+                        }
+                        if (from === "德利尔度") {
+                            if (to === "摄氏度") result = 100 - value * 2/3;
+                            if (to === "华氏度") result = 212 - value * 6/5;
+                            if (to === "开尔文") result = 373.15 - value * 2/3;
+                            if (to === "兰氏度") result = 671.67 - value * 6/5;
+                            if (to === "列氏度") result = 80 - value * 8/15;
+                            if (to === "牛顿度") result = 33 - value * 11/50;
+                        }
+                        break;
+                    case "energy":
+                        const en = { "焦耳": 1, "千瓦时": 2.77778e-7, "卡路里": 0.2388459, "英热单位": 0.000947817, "电子伏特": 6.242e18, "尔格": 1e7, "牛顿米": 1, "马力小时": 3.72506e-7, "千焦": 0.001, "兆焦": 1e-6, "瓦秒": 1 };
+                        result = value * en[to] / en[from];
+                        break;
+                    case "area":
+                        const ar = { "平方米": 1, "公顷": 0.0001, "英亩": 0.000247105, "平方千米": 0.000001, "平方英尺": 10.7639, "平方码": 1.19599, "平方英寸": 1550, "平方毫米": 1e6, "平方厘米": 10000, "平方微米": 1e12, "町": 0.00010083 };
+                        result = value * ar[to] / ar[from];
+                        break;
+                    case "speed":
+                        const sp = { "米/秒": 1, "千米/小时": 0.277778, "英里/小时": 0.44704, "节": 0.514444, "光速": 3.33564e-9, "马赫": 0.00291545, "英尺/秒": 3.28084, "厘米/秒": 100, "千米/秒": 0.001, "英寸/秒": 39.3701 };
+                        result = value * sp[to] / sp[from];
+                        break;
+                    case "time":
+                        const tm = { "秒": 1, "分钟": 0.0166667, "小时": 0.000277778, "天": 0.0000115741, "周": 0.00000165344, "月": 3.80517e-7, "年": 3.16888e-8, "毫秒": 1000, "微秒": 1e6, "纳秒": 1e9, "皮秒": 1e12, "世纪": 3.16888e-10, "十年": 3.16888e-9 };
+                        result = value * tm[to] / tm[from];
+                        break;
+                    case "power":
+                        const pw = { "瓦": 1, "千瓦": 0.001, "马力": 0.00134102, "兆瓦": 0.000001, "英制马力": 0.00134048, "焦耳/秒": 1, "卡路里/秒": 0.2388459, "吉瓦": 1e-9, "微瓦": 1e6, "毫瓦": 1000, "匹": 0.00135962 };
+                        result = value * pw[to] / pw[from];
+                        break;
+                    case "pressure":
+                        const pr = { "帕": 1, "巴": 0.00001, "大气压": 0.00000986923, "毫米汞柱": 0.00750062, "千帕": 0.001, "兆帕": 0.000001, "托": 0.00750062, "磅/平方英寸": 0.000145038, "英寸汞柱": 0.0002953, "毫巴": 0.01, "千克/平方厘米": 0.0000101972 };
+                        result = value * pr[to] / pr[from];
+                        break;
+                    case "angle":
+                        const ang = { "度": 1, "弧度": 0.0174533, "百分度": 0.9, "毫弧度": 17.4533, "角分": 60, "角秒": 3600, "圈": 0.00277778, "直角": 0.0111111, "密位": 0.0625, "弧分": 60, "弧秒": 3600 };
+                        result = value * ang[to] / ang[from];
+                        break;
+                }
+            }
+
+            document.getElementById("result").textContent = result.toFixed(4) || "不支持的换算";
+        }
+
+        // 初始化
+        updateUnits();
+    </script>
+</body>
+</html>
